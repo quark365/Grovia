@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Grovia</title>
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}" />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='styles.css') }}"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  </head>
+  <body>
+    <header role="banner">
+      <h1>🤖 Grovia</h1>
+      <p class="header-subtitle">
+        Chat with Groq using Text, Voice, Images, or Documents
+      </p>
+      <button
+        class="theme-toggle"
+        id="theme-toggle"
+        title="Toggle Theme"
+        aria-label="Toggle Theme"
+      >
+        <i class="fas fa-moon"></i>
+      </button>
+    </header>
+
+    <div class="main-container">
+      <div class="sidebar" role="navigation">
+        <div class="sidebar-header">
+          <h2>Chat History</h2>
+          <button
+            class="new-chat-btn"
+            id="new-chat-btn"
+            aria-label="Start New Chat"
+          >
+            New Chat
+          </button>
+        </div>
+        <input
+          type="text"
+          class="chat-search"
+          id="chat-search"
+          placeholder="Search chats..."
+          aria-label="Search Chat History"
+        />
+        <div class="chat-list" id="chat-list">
+          <!-- Chat items will be appended here -->
+        </div>
+      </div>
+
+      <div class="container" role="main">
+        <div class="api-key-section">
+          <input
+            type="password"
+            id="api-key"
+            class="api-key-input"
+            placeholder="Enter your Groq API key..."
+            aria-label="Groq API Key"
+            value="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"
+            oncopy="return false"
+            oncut="return false"
+          />
+        </div>
+        <div class="settings-section">
+          <label>
+            <input
+              type="checkbox"
+              id="show-timestamps"
+              checked
+              aria-label="Show Message Timestamps"
+            />
+            Show Timestamps
+          </label>
+          <label>
+            Response Language:
+            <select id="response-language" aria-label="Response Language">
+              <option value="en">English</option>
+              <option value="es">Spanish</option>
+              <option value="fr">French</option>
+              <option value="de">German</option>
+              <option value="zh">Chinese</option>
+            </select>
+          </label>
+          <button
+            class="new-chat-btn"
+            id="export-chat-btn"
+            aria-label="Export Chat as Text"
+          >
+            Export Chat (Text)
+          </button>
+          <button
+            class="new-chat-btn"
+            id="export-pdf-btn"
+            aria-label="Export Chat as PDF"
+          >
+            Export Chat (PDF)
+          </button>
+        </div>
+        <div class="image-generation-section">
+          <input
+            type="text"
+            id="image-prompt"
+            class="image-generation-input"
+            placeholder="Enter Pokémon name or ID..."
+            aria-label="Image Generation Prompt"
+          />
+          <button
+            class="generate-image-btn"
+            id="generate-image-btn"
+            aria-label="Generate Image"
+          >
+            Generate Image
+          </button>
+          <button
+            class="generate-image-btn"
+            id="random-pokemon-btn"
+            aria-label="Random Pokémon"
+          >
+            Random Pokémon
+          </button>
+          <div id="pokemon-image" class="pokemon-image"></div>
+        </div>
+        <div class="chat-container">
+          <div class="chat-header">
+            <input
+              type="text"
+              class="chat-search-input"
+              id="message-search"
+              placeholder="Search messages..."
+              aria-label="Search Messages"
+            />
+          </div>
+          <div
+            class="chat-messages"
+            id="chat-messages"
+            role="log"
+            aria-live="polite"
+          >
+            <!-- Messages will be appended here -->
+          </div>
+          <div class="chat-input-container">
+            <div class="input-wrapper">
+              <textarea
+                id="chat-input"
+                class="chat-input"
+                placeholder="Message Grok..."
+                aria-label="Message Input"
+              ></textarea>
+              <div class="input-icons">
+                <button
+                  class="icon-btn"
+                  id="attach-btn"
+                  title="Attach Image or Document"
+                  aria-label="Attach File"
+                >
+                  <i class="fas fa-paperclip"></i>
+                  <input
+                    type="file"
+                    id="media-input"
+                    accept="image/*,audio/*,.pdf,.docx,.txt,.md,.csv"
+                    style="display: none"
+                    aria-hidden="true"
+                  />
+                  <input
+                    type="file"
+                    id="audio-input"
+                    accept="audio/*"
+                    style="display: none"
+                    aria-hidden="true"
+                  />
+                  <input
+                    type="file"
+                    id="image-input"
+                    accept="image/*"
+                    style="display: none"
+                    aria-hidden="true"
+                  />
+                  <input
+                    type="file"
+                    id="document-input"
+                    accept=".pdf,.docx,.txt,.md,.csv"
+                    style="display: none"
+                    aria-hidden="true"
+                  />
+                </button>
+                <button
+                  class="icon-btn"
+                  id="camera-btn"
+                  title="Capture Image"
+                  aria-label="Capture Image"
+                >
+                  <i class="fas fa-camera"></i>
+                </button>
+                <video
+                  id="camera-preview"
+                  style="display: none"
+                  autoplay
+                  playsinline
+                  aria-hidden="true"
+                ></video>
+                <canvas
+                  id="camera-canvas"
+                  style="display: none"
+                  aria-hidden="true"
+                ></canvas>
+                <button
+                  class="icon-btn"
+                  id="voice-btn"
+                  title="Record Voice"
+                  aria-label="Record Voice"
+                >
+                  <i class="fas fa-microphone"></i>
+                </button>
+                <select
+                  id="image-processing-mode"
+                  class="image-processing-mode"
+                  aria-label="Image Processing Mode"
+                  style="display: none"
+                >
+                  <option value="ocr">OCR (Text Extraction)</option>
+                  <option value="vision">
+                    Vision Model (Image Description)
+                  </option>
+                </select>
+              </div>
+            </div>
+            <button
+              class="icon-btn reasoning-btn"
+              id="reasoning-btn"
+              title="Toggle Reasoning"
+              aria-label="Toggle Reasoning"
+            >
+              <i class="fas fa-brain"></i>
+            </button>
+            <button class="send-btn" id="send-btn" aria-label="Send Message">
+              <i class="fas fa-paper-plane"></i>
+            </button>
+          </div>
+          <div
+            class="media-preview"
+            id="media-preview"
+            role="region"
+            aria-label="Media Preview"
+          ></div>
+          <div id="image-preview" aria-hidden="true">
+            <img id="preview-img" alt="Image Preview" />
+          </div>
+          <div id="audio-preview" aria-hidden="true">
+            <audio
+              id="audio-player"
+              controls
+              aria-label="Audio Preview"
+            ></audio>
+          </div>
+          <div id="document-info" aria-hidden="true">
+            <span id="document-name"></span>
+          </div>
+          <div
+            class="loading"
+            id="chat-loading"
+            role="status"
+            aria-live="polite"
+          >
+            <div class="spinner"></div>
+            <p>Processing...</p>
+          </div>
+          <div
+            class="typing-indicator"
+            id="typing-indicator"
+            role="status"
+            aria-live="polite"
+          >
+            Grok is typing<span>.</span><span>.</span><span>.</span>
+          </div>
+          <div
+            class="typing-indicator"
+            id="user-typing-indicator"
+            role="status"
+            aria-live="polite"
+          >
+            You are typing<span>.</span><span>.</span><span>.</span>
+          </div>
+          <div class="error-message" id="chat-error" role="alert"></div>
+          <div
+            class="error-message"
+            id="text-error"
+            style="display: none"
+            role="alert"
+          ></div>
+          <div
+            class="error-message"
+            id="voice-error"
+            style="display: none"
+            role="alert"
+          ></div>
+          <div
+            team-section
+            class="error-message"
+            id="image-error"
+            style="display: none"
+            role="alert"
+          ></div>
+          <div
+            class="error-message"
+            id="document-error"
+            style="display: none"
+            role="alert"
+          ></div>
+          <div
+            class="error-message"
+            id="image-gen-error"
+            style="display: none"
+            role="alert"
+          ></div>
+        </div>
+
+        <div class="instructions" role="complementary">
+          <h2>📚 How to Use</h2>
+          <ul>
+            <li>Enter your Groq API key at the top.</li>
+            <li>
+              Use the left sidebar to create new chats, load previous ones, or
+              pin favorite chats.
+            </li>
+            <li>Search chats using the search bar in the sidebar.</li>
+            <li>
+              Type a message with Markdown support, or use the icons to send
+              voice, images, or documents.
+            </li>
+            <li>
+              When uploading an image, choose between OCR (text extraction) or
+              Vision Model (image description).
+            </li>
+            <li>Generate Pokémon images using the image generation prompt.</li>
+            <li>
+              Toggle reasoning mode with the brain icon next to the send button
+              to enable step-by-step reasoning for text inputs. Click again to activate agentic mode.
+            </li>
+            <li>
+              Press the send button, Ctrl+Enter, or hit Enter to get a response
+              from Grok.
+            </li>
+            <li>
+              Search messages within a chat using the search bar above the chat
+              window.
+            </li>
+            <li>
+              Add emoji reactions to messages by clicking the smiley icon.
+            </li>
+            <li>
+              Edit your last message with Ctrl+E or the edit button (within 5
+              minutes).
+            </li>
+            <li>
+              Toggle between dark/light themes using the button in the header.
+            </li>
+            <li>Copy messages using the copy button that appears on hover.</li>
+            <li>Export chats as text or PDF files using the Export buttons.</li>
+            <li>Show/hide timestamps using the settings checkbox.</li>
+            <li>Select the response language in the settings section.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="groq-badge" role="contentinfo">Powered by Groq</div>
+
+    
+
+    <footer role="contentinfo">
+      <p>Made with ❤️ by the <a href="{{ url_for('about') }}" class="about-button">Moon Knight</a> Team</p>
+      <p>
+        Get your free Groq API key at
+        <a
+          href="https://console.groq.com/"
+          target="_blank"
+          aria-label="Get Groq API Key"
+          >groq.com</a
+        >
+      </p>
+      <p>© 2025 - Built with Groq</p>
+      
+
+    </footer>
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+  </body>
+</html>
