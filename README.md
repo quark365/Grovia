@@ -1,9 +1,9 @@
 # Grovia
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Built%20with-Flask-blue.svg" alt="Flask Badge">
-  <img src="https://img.shields.io/badge/API-Groq-green.svg" alt="Groq Badge">
-  <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License Badge">
+  <a href="https://flask.palletsprojects.com/"><img src="https://img.shields.io/badge/Built%20with-Flask-blue.svg" alt="Flask Badge"></a>
+  <a href="https://groq.com/"><img src="https://img.shields.io/badge/API-Groq-green.svg" alt="Groq Badge"></a>
+  <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License Badge"></a>
   <img src="https://img.shields.io/badge/Status-Active-brightgreen.svg" alt="Active Badge">
   <img src="https://img.shields.io/badge/Made%20with-%E2%9D%A4-red.svg" alt="Made with Love Badge">
 </p>
